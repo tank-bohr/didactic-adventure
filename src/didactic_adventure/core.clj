@@ -1,7 +1,11 @@
 (ns didactic-adventure.core
+  (:require
+    [immutant.web :as web])
   (:gen-class))
 
-(defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
-  (println "Hello, World!"))
+(defn app [request]
+  {:status 200
+   :body "Welcome"})
+
+(defn -main []
+  (web/run app))
