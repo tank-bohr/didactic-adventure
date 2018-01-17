@@ -11,15 +11,15 @@
 (def port
   (System/getenv "PORT" ))
 
-(defn get-updates-url []
+(def get-updates-url
   (str "https://api.telegram.org/" token "/getUpdates"))
 
-(defn send-message-url []
+(def send-message-url
   (str "https://api.telegram.org/" token "/sendMessage"))
 
 (defn get-updates []
   (->
-    (get-updates-url)
+    get-updates-url
     http/post
     deref
     :body
@@ -28,7 +28,7 @@
 
 (defn send-message [chat-id text]
   (->
-    (send-message-url)
+    send-message-url
     (http/post {:form-params
                 {:chat_id chat-id
                  :text text}})
@@ -37,13 +37,20 @@
     (json/read-str :key-fn keyword)
     :result))
 
-(defn handle-update [update]
-  (let [chat-id (-> update :message :chat :id)
-        text    (-> update :message :text)]
+(defn reply-to [message]
+  (let [chat-id (-> message :chat :id)
+        text    (-> message :text)]
     (send-message chat-id text)))
 
-(defn run []
-  (map handle-update (get-updates)))
+(defn hello []
+  (let [grouped (group-by #(-> % :message :chat :id) (get-updates))
+        messages (map (fn [[_chat-id updates]]
+                        (->> updates
+                          (sort-by :update_id)
+                          last
+                          :message))
+                   grouped)]
+  (map reply-to messages)))
 
 (defn app [_request]
   {:status 200
