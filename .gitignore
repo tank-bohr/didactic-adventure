@@ -10,4 +10,4 @@ pom.xml.asc
 .hgignore
 .hg/
 didactic-adventure.iml
-webhook.txt
+webhook.*

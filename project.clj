@@ -6,6 +6,7 @@
   :dependencies [
                  [org.clojure/clojure "1.8.0"]
                  [org.clojure/data.json "0.2.6"]
+                 [org.clojure/tools.logging "0.4.0"]
                  [http-kit "2.2.0"]
                  ]
   :main ^:skip-aot didactic-adventure.core

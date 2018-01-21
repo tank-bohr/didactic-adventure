@@ -1,6 +1,8 @@
 (ns didactic-adventure.core
   (:require
+    [clojure.java.io :as io]
     [clojure.data.json :as json]
+    [clojure.tools.logging :as log]
     [org.httpkit.server :as web]
     [org.httpkit.client :as http])
   (:gen-class))
@@ -12,7 +14,7 @@
   (->> "TOKEN" System/getenv (str "bot")))
 
 (defn webhook-token []
-  (System/getenv "WEBHOOK-TOKEN"))
+  (System/getenv "WEBHOOK_TOKEN"))
 
 (defn get-updates-url []
   (str "https://api.telegram.org/" (token) "/getUpdates"))
@@ -43,7 +45,9 @@
 (defn reply-to [message]
   (let [chat-id (-> message :chat :id)
         text    (-> message :text)]
-    (send-message chat-id text)))
+    (do
+      (log/info "reply-to: " message)
+      (send-message chat-id text))))
 
 (defn hello []
   (let [grouped (group-by #(-> % :message :chat :id) (get-updates))
@@ -56,10 +60,11 @@
   (map reply-to messages)))
 
 (defn webhook-arrived [request]
-  (let [raw-body (:body request)
-        webhook (json/read-str raw-body {:key-fn keyword})
+  (let [raw-body (slurp (:body request))
+        webhook (json/read-str raw-body :key-fn keyword)
         message (:message webhook)]
     (do
+      (log/info "webhook-arrived: " webhook)
       (reply-to message)
       {:status 204})))
 
@@ -67,11 +72,15 @@
   {:status 403})
 
 (defn app [request]
-  (if (= (:uri request) (str "/" (webhook-token)))
-    (webhook-arrived request)
-    (forbidden)))
+  (let [uri (:uri request)]
+    (do
+      (log/info uri " requested")
+      (if (= uri (str "/" (webhook-token)))
+        (webhook-arrived request)
+        (forbidden)))))
 
 (defn -main []
   (do
+    (log/info "Starting server. Listen port " port "...")
     ;(hello)
     (web/run-server app {:port (port)})))
