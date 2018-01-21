@@ -1,0 +1,15 @@
+[Unit]
+Description=Didactic Adventure
+
+[Service]
+Type=simple
+User={{ user }}
+WorkingDirectory={{ work_dir }}
+Environment="PORT={{ port }}"
+Environment="TOKEN={{ token }}"
+Environment="WEBHOOK_TOKEN={{ webhook_token }}"
+ExecStart=/bin/java -jar {{ project_name }}.jar
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target

@@ -5,21 +5,24 @@
     [org.httpkit.client :as http])
   (:gen-class))
 
-(def token
-  (System/getenv "TOKEN"))
+(defn port []
+  (-> "PORT" System/getenv read-string))
 
-(def port
-  (System/getenv "PORT" ))
+(defn token []
+  (->> "TOKEN" System/getenv (str "bot")))
 
-(def get-updates-url
-  (str "https://api.telegram.org/" token "/getUpdates"))
+(defn webhook-token []
+  (System/getenv "WEBHOOK-TOKEN"))
 
-(def send-message-url
-  (str "https://api.telegram.org/" token "/sendMessage"))
+(defn get-updates-url []
+  (str "https://api.telegram.org/" (token) "/getUpdates"))
+
+(defn send-message-url []
+  (str "https://api.telegram.org/" (token) "/sendMessage"))
 
 (defn get-updates []
   (->
-    get-updates-url
+    (get-updates-url)
     http/post
     deref
     :body
@@ -28,7 +31,7 @@
 
 (defn send-message [chat-id text]
   (->
-    send-message-url
+    (send-message-url)
     (http/post {:form-params
                 {:chat_id chat-id
                  :text text}})
@@ -52,9 +55,23 @@
                    grouped)]
   (map reply-to messages)))
 
-(defn app [_request]
-  {:status 200
-   :body "Welcome"})
+(defn webhook-arrived [request]
+  (let [raw-body (:body request)
+        webhook (json/read-str raw-body {:key-fn keyword})
+        message (:message webhook)]
+    (do
+      (reply-to message)
+      {:status 204})))
+
+(defn forbidden []
+  {:status 403})
+
+(defn app [request]
+  (if (= (:uri request) (str "/" (webhook-token)))
+    (webhook-arrived request)
+    (forbidden)))
 
 (defn -main []
-  (web/run-server app {:port port}))
+  (do
+    ;(hello)
+    (web/run-server app {:port (port)})))

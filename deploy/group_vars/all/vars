@@ -1,0 +1,4 @@
+---
+port: 8080
+token: "{{ vault_token }}"
+webhook_token: "{{ vault_webhook_token }}"
