@@ -1,10 +1,10 @@
 (ns didactic-adventure.core
   (:require
-    [clojure.java.io :as io]
     [clojure.data.json :as json]
     [clojure.tools.logging :as log]
     [org.httpkit.server :as web]
-    [org.httpkit.client :as http])
+    [org.httpkit.client :as http]
+    [didactic-adventure.brain :as brain])
   (:gen-class))
 
 (defn port []
@@ -44,10 +44,11 @@
 
 (defn reply-to [message]
   (let [chat-id (-> message :chat :id)
-        text    (-> message :text)]
+        text    (-> message :text)
+        reaction (brain/react text)]
     (do
       (log/info "reply-to: " message)
-      (send-message chat-id text))))
+      (send-message chat-id reaction))))
 
 (defn hello []
   (let [grouped (group-by #(-> % :message :chat :id) (get-updates))
