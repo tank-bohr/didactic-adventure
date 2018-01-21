@@ -43,12 +43,13 @@
     :result))
 
 (defn reply-to [message]
-  (let [chat-id (-> message :chat :id)
-        text    (-> message :text)
+  (let [chat-id  (-> message :chat :id)
+        text     (-> message :text)
         reaction (brain/react text)]
-    (do
-      (log/info "reply-to: " message)
-      (send-message chat-id reaction))))
+    (if-not
+      (nil? reaction) (do
+                        (log/info "reply-to: " message)
+                        (send-message chat-id reaction)))))
 
 (defn hello []
   (let [grouped (group-by #(-> % :message :chat :id) (get-updates))
@@ -82,6 +83,6 @@
 
 (defn -main []
   (do
-    (log/info "Starting server. Listen port " port "...")
+    (log/info "Starting server. Listen port " (port) "...")
     ;(hello)
     (web/run-server app {:port (port)})))

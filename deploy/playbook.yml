@@ -9,32 +9,32 @@
     user: "{{ ansible_env.SUDO_USER }}"
 
   tasks:
-    - name: Ensure java installed
-      yum:
-        name: java-1.8.0-openjdk
-        state: latest
+    # - name: Ensure java installed
+    #   yum:
+    #     name: java-1.8.0-openjdk
+    #     state: latest
 
-    - name: Ensure work dir exists
-      file:
-        path: "{{ work_dir }}"
-        state: directory
+    # - name: Ensure work dir exists
+    #   file:
+    #     path: "{{ work_dir }}"
+    #     state: directory
 
-    # - name: Build project
-    #   local_action:
-    #     shell: "lein uberjar"
-    #     args:
-    #       chdir: "{{ project_dir }}"
+    # # - name: Build project
+    # #   local_action:
+    # #     shell: "lein uberjar"
+    # #     args:
+    # #       chdir: "{{ project_dir }}"
+
+    # - name: Ensure systemd unit installed
+    #   template:
+    #     src: didactic-adventure.service.j2
+    #     dest: "/etc/systemd/system/{{ project_name }}.service"
 
     - name: Deployment
       copy:
         dest: "{{ work_dir }}/{{ project_name }}.jar"
         src: "{{ project_dir }}/target/uberjar/{{ project_name }}-0.1.0-SNAPSHOT-standalone.jar"
         group: nobody
-
-    - name: Ensure systemd unit installed
-      template:
-        src: didactic-adventure.service.j2
-        dest: "/etc/systemd/system/{{ project_name }}.service"
 
     - name: Run
       systemd:
