@@ -4,6 +4,7 @@
     [clojure.tools.logging :as log]
     [org.httpkit.server :as web]
     [org.httpkit.client :as http]
+    [gniazdo.core :as ws]
     [didactic-adventure.brain :as brain])
   (:gen-class))
 
@@ -16,20 +17,54 @@
 (defn webhook-token []
   (System/getenv "WEBHOOK_TOKEN"))
 
-(defn get-updates-url []
-  (str "https://api.telegram.org/" (token) "/getUpdates"))
+(defn slack-token []
+  (System/getenv "SLACK_TOKEN"))
 
-(defn send-message-url []
-  (str "https://api.telegram.org/" (token) "/sendMessage"))
-
-(defn get-updates []
+(defn rtm-slack-url []
   (->
-    (get-updates-url)
-    http/post
+    "https://slack.com/api/rtm.start"
+    (http/post {:form-params {:token (slack-token)}})
     deref
     :body
     (json/read-str :key-fn keyword)
-    :result))
+    :url))
+
+(defonce slack (atom nil))
+
+(defonce slack-message-counter (atom 0))
+
+(defn send-to-slack [channel text]
+  (if-not (nil? @slack)
+    (->> {:id (reset! slack-message-counter (inc @slack-message-counter))
+         :type "message"
+         :channel channel
+         :text text
+       }
+      json/write-str
+      (ws/send-msg @slack))))
+
+(defn on-slack-message [message]
+  (let [channel (:channel message)
+        text (:text message)
+        reaction (brain/react text)]
+    (send-to-slack channel reaction)))
+
+(defn on-slack-event [raw-message]
+  (let [message (json/read-str raw-message :key-fn keyword)
+        type (:type message)]
+    (if (= type "message") (do
+                                (log/info "Received: " message)
+                                (on-slack-message message)
+                                ))))
+
+(defn connect-slack []
+  (if-not (nil? (slack-token))
+    (let [url (rtm-slack-url)]
+      (if-not (nil? url)
+        (reset! slack (ws/connect url :on-receive on-slack-event))))))
+
+(defn send-message-url []
+  (str "https://api.telegram.org/" (token) "/sendMessage"))
 
 (defn send-message [chat-id text]
   (->
@@ -50,16 +85,6 @@
       (nil? reaction) (do
                         (log/info "reply-to: " message)
                         (send-message chat-id reaction)))))
-
-(defn hello []
-  (let [grouped (group-by #(-> % :message :chat :id) (get-updates))
-        messages (map (fn [[_chat-id updates]]
-                        (->> updates
-                          (sort-by :update_id)
-                          last
-                          :message))
-                   grouped)]
-  (map reply-to messages)))
 
 (defn webhook-arrived [request]
   (let [raw-body (slurp (:body request))
@@ -84,5 +109,5 @@
 (defn -main []
   (do
     (log/info "Starting server. Listen port " (port) "...")
-    ;(hello)
+    (connect-slack)
     (web/run-server app {:port (port)})))
