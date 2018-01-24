@@ -19,16 +19,17 @@
     #     path: "{{ work_dir }}"
     #     state: directory
 
-    # # - name: Build project
-    # #   local_action:
-    # #     shell: "lein uberjar"
-    # #     args:
-    # #       chdir: "{{ project_dir }}"
+    - name: Ensure systemd unit installed
+      template:
+        src: didactic-adventure.service.j2
+        dest: "/etc/systemd/system/{{ project_name }}.service"
 
-    # - name: Ensure systemd unit installed
-    #   template:
-    #     src: didactic-adventure.service.j2
-    #     dest: "/etc/systemd/system/{{ project_name }}.service"
+    - name: Build project
+      shell: "lein uberjar"
+      args:
+        chdir: "{{ project_dir }}"
+      become: false
+      delegate_to: 127.0.0.1
 
     - name: Deployment
       copy:

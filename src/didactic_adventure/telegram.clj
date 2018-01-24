@@ -7,10 +7,10 @@
     [didactic-adventure.brain :as brain]))
 
 (def token (memoize (fn []
-  (->> "TOKEN" System/getenv (str "bot")))))
+  (->> "TELEGRAM_TOKEN" System/getenv (str "bot")))))
 
 (def webhook-url (memoize (fn []
-  (->> "WEBHOOK_TOKEN" System/getenv (str "/")))))
+  (->> "WEBHOOK_URL" System/getenv (str "/")))))
 
 (def send-message-url (memoize (fn []
   (str "https://api.telegram.org/" (token) "/sendMessage"))))

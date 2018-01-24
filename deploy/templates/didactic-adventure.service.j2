@@ -6,8 +6,9 @@ Type=simple
 User={{ user }}
 WorkingDirectory={{ work_dir }}
 Environment="PORT={{ port }}"
-Environment="TOKEN={{ token }}"
-Environment="WEBHOOK_TOKEN={{ webhook_token }}"
+Environment="TELEGRAM_TOKEN={{ telegram_token }}"
+Environment="WEBHOOK_URL={{ webhook_url }}"
+Environment="SLACK_TOKEN={{ slack_token }}"
 ExecStart=/bin/java -jar {{ project_name }}.jar
 Restart=on-abort
 

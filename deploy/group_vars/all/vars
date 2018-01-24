@@ -1,4 +1,5 @@
 ---
 port: 8080
-token: "{{ vault_token }}"
-webhook_token: "{{ vault_webhook_token }}"
+telegram_token: "{{ vault_telegram_token }}"
+webhook_url: "{{ vault_webhook_url }}"
+slack_token: "{{ vault_slack_token }}"
