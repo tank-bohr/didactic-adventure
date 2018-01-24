@@ -12,4 +12,6 @@
                  ]
   :main ^:skip-aot didactic-adventure.core
   :target-path "target/%s"
-  :profiles {:uberjar {:aot :all}})
+  :profiles
+  {:test {:dependencies [[http-kit.fake "0.2.1"]]}
+   :uberjar {:aot :all}})
