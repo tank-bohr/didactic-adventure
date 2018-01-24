@@ -23,6 +23,8 @@
       template:
         src: didactic-adventure.service.j2
         dest: "/etc/systemd/system/{{ project_name }}.service"
+      notify:
+        - daemon reload
 
     - name: Build project
       shell: "lein uberjar"
@@ -41,3 +43,7 @@
       systemd:
         name: "{{ project_name }}"
         state: restarted
+
+  handlers:
+    - name: daemon reload
+      shell: "systemctl daemon-reload"
