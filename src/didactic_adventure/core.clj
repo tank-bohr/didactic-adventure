@@ -3,7 +3,7 @@
     [clojure.data.json :as json]
     [clojure.tools.logging :as log]
     [org.httpkit.server :as web]
-    [gniazdo.core :as ws]
+    [didactic-adventure.slack :as slack]
     [didactic-adventure.http :as http]
     [didactic-adventure.brain :as brain])
   (:gen-class))
@@ -19,46 +19,6 @@
 
 (defn slack-token []
   (System/getenv "SLACK_TOKEN"))
-
-(defn rtm-slack-url []
-  (->
-    "https://slack.com/api/rtm.start"
-    (http/post {:token (slack-token)})
-    :url))
-
-(defonce slack (atom nil))
-
-(defonce slack-message-counter (atom 0))
-
-(defn send-to-slack [channel text]
-  (if-not (nil? @slack)
-    (->> {:id (reset! slack-message-counter (inc @slack-message-counter))
-         :type "message"
-         :channel channel
-         :text text
-       }
-      json/write-str
-      (ws/send-msg @slack))))
-
-(defn on-slack-message [message]
-  (let [channel (:channel message)
-        text (:text message)
-        reaction (brain/react text)]
-    (send-to-slack channel reaction)))
-
-(defn on-slack-event [raw-message]
-  (let [message (json/read-str raw-message :key-fn keyword)
-        type (:type message)]
-    (if (= type "message") (do
-                                (log/info "Received: " message)
-                                (on-slack-message message)
-                                ))))
-
-(defn connect-slack []
-  (if-not (nil? (slack-token))
-    (let [url (rtm-slack-url)]
-      (if-not (nil? url)
-        (reset! slack (ws/connect url :on-receive on-slack-event))))))
 
 (defn send-message-url []
   (str "https://api.telegram.org/" (token) "/sendMessage"))
@@ -100,7 +60,9 @@
         (forbidden)))))
 
 (defn -main []
-  (do
-    (log/info "Starting server. Listen port " (port) "...")
-    (connect-slack)
-    (web/run-server app {:port (port)})))
+  (let [port (port)
+        slack-token (slack-token)]
+    (log/info "Starting server. Listen port " port "...")
+    (if-not (nil? slack-token)
+      (slack/connect slack-token))
+    (web/run-server app {:port port})))
