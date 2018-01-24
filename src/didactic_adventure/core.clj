@@ -3,8 +3,8 @@
     [clojure.data.json :as json]
     [clojure.tools.logging :as log]
     [org.httpkit.server :as web]
-    [org.httpkit.client :as http]
     [gniazdo.core :as ws]
+    [didactic-adventure.http :as http]
     [didactic-adventure.brain :as brain])
   (:gen-class))
 
@@ -23,10 +23,7 @@
 (defn rtm-slack-url []
   (->
     "https://slack.com/api/rtm.start"
-    (http/post {:form-params {:token (slack-token)}})
-    deref
-    :body
-    (json/read-str :key-fn keyword)
+    (http/post {:token (slack-token)})
     :url))
 
 (defonce slack (atom nil))
@@ -69,12 +66,8 @@
 (defn send-message [chat-id text]
   (->
     (send-message-url)
-    (http/post {:form-params
-                {:chat_id chat-id
-                 :text text}})
-    deref
-    :body
-    (json/read-str :key-fn keyword)
+    (http/post {:chat_id chat-id
+                :text text})
     :result))
 
 (defn reply-to [message]
