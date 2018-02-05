@@ -219,7 +219,10 @@
               "что за тоска и боль на ровном месте?"
   ]))
 
-
+(defn bday []
+  (rand-nth [
+              "С ДНЕМ РОЖДЕНИЯ МЕНЯ!"
+  ]))
 
 (defn react [text]
   (cond
@@ -256,4 +259,6 @@
     (facts)
     (re-find #"(?ui)(\bболь\b)"                             text)
     (pain)
+    (re-find #"(?ui)(праздник)"                             text)
+    (bday)
     ))
