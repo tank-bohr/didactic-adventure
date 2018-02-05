@@ -244,7 +244,7 @@
     (kagbe)
     (re-find #"(?ui)паш"                                    text)
     (pasha)
-    (re-find #"(?ui)(прав\s|сказа(ть|л|жи))"                text)
+    (re-find #"(?ui)(прав\s|ска(зать|зал|жи))"               text)
     (i-said)
     (re-find #"(?ui)(запре[тщ]|можно)"                      text)
     (prohibition)
