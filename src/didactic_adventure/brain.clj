@@ -239,14 +239,13 @@
 
 (defn react [text]
   (cond
-    (nil? text) (appeal)
     (re-find #"(?ui)ка[кг\s]*б[ыеэ]"                        text)
     (kagbe)
     (re-find #"(?ui)паш"                                    text)
     (pasha)
     (re-find #"(?ui)(прав\s|ска(зать|зал|жи))"               text)
     (i-said)
-    (re-find #"(?ui)(запре[тщ]|можно)"                      text)
+    (re-find #"(?ui)(запре[тщ]|\bможно)"                      text)
     (prohibition)
     (re-find #"(?ui)(нельзя|невозможно)"                    text)
     (i-can)
