@@ -26,11 +26,12 @@
       (ws/send-msg @slack))))
 
 (defn on-message [message]
+  (log/info "Received message:" message)
   (let [channel (:channel message)
-        text (:text message)
+        text (get message :text "")
         reaction (brain/react text)]
-    (log/info "Received message:" message)
-    (send-to channel reaction)))
+    (if-not (nil? text)
+      (send-to channel reaction))))
 
 (defn on-hello [_]
   (log/info "Hello"))

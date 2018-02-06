@@ -24,7 +24,7 @@
 
 (defn reply-to [message]
   (let [chat-id  (-> message :chat :id)
-        text     (-> message :text)
+        text     (get message :text "")
         reaction (brain/react text)]
     (if-not
       (nil? reaction) (do
