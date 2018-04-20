@@ -5,7 +5,7 @@
                                         on-close
                                         on-receive]])
   (:require [org.httpkit.fake :as fake])
-  (:require [didactic-adventure.slack :refer [slack connect]]))
+  (:require [didactic-adventure.slack :refer [slack connect-with-token]]))
 
 (def port 4321)
 
@@ -33,5 +33,5 @@
 
 (deftest connect-test
   (testing "websocket connection"
-    (connect "some-fake-token")
+    (connect-with-token "some-fake-token")
     (is (not (nil? @slack)))))

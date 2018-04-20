@@ -6,6 +6,9 @@
     [didactic-adventure.http :as http]
     [didactic-adventure.brain :as brain]))
 
+(defn port []
+  (-> "PORT" System/getenv read-string))
+
 (def token (memoize (fn []
   (->> "TELEGRAM_TOKEN" System/getenv (str "bot")))))
 
@@ -49,6 +52,7 @@
       (webhook-arrived request)
       (forbidden))))
 
-(defn start [port]
-  (log/info "Starting server. Listen port " port "...")
-  (server/run-server app {:port port}))
+(defn start []
+  (let [port (port)]
+    (log/info "Starting server. Listen port " port "...")
+    (server/run-server app {:port port})))

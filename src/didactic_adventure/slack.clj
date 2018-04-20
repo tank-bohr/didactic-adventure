@@ -10,6 +10,9 @@
 
 (defonce message-counter (atom 0))
 
+(defn token []
+  (System/getenv "SLACK_TOKEN"))
+
 (defn data [token]
   (->
     "https://slack.com/api/rtm.start"
@@ -64,7 +67,7 @@
     (log/info "new channel" channel)
     (db/insert-channel channel)))
 
-(defn on-event [raw-message]
+(defn on-receive [raw-message]
   (let [message (json/read-str raw-message :key-fn keyword)
         type (:type message)]
     (cond
@@ -77,10 +80,27 @@
       (= type "team_join") (on-team-join message)
       (= type "channel_created") (on-channel-created message))))
 
-(defn connect [token]
+(def connect)
+
+(defn on-close [status-code reason]
+  (log/info "websocket closed" status-code reason)
+  (Thread/sleep 5000)
+  (log/info "Reconnecting...")
+  (connect))
+
+(defn connect-with-token [token]
   (let [data (data token)
         url (:url data)]
     (db/init)
     (db/load-data data)
     (if-not (nil? url)
-      (reset! slack (ws/connect url :on-receive on-event)))))
+      (reset! slack (ws/connect url
+                      :on-receive on-receive
+                      :on-close on-close)))))
+
+(defn connect []
+  (let [token (token)]
+    (if (nil? token)
+      (log/error "Slack token is missing. Skip slack...")
+      (connect-with-token token))))
+
